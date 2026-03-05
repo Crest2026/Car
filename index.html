@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>广安市疾病预防控制中2026年汽车租赁台账</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * {margin: 0; padding: 0; box-sizing: border-box; font-family: "微软雅黑";}
+        .container {max-width: 800px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;}
+        h2 {text-align: center; margin-bottom: 20px; color: #333;}
+        .form-item {margin-bottom: 15px; display: flex; align-items: center;}
+        .form-item label {width: 120px; text-align: right; padding-right: 10px; font-size: 14px;}
+        .form-item select, .form-item input, .form-item textarea {flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;}
+        .form-item .other-input {flex: 1; display: none; gap: 10px;}
+        .form-item .other-input input {flex: 1;}
+        .form-item textarea {min-height: 60px; resize: vertical;}
+        .btn-group {display: flex; gap: 10px; margin-top: 20px;}
+        .submit-btn, .export-btn {flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;}
+        .submit-btn {background: #007bff; color: #fff;}
+        .export-btn {background: #28a745; color: #fff;}
+        .submit-btn:hover {background: #0056b3;}
+        .export-btn:hover {background: #218838;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>2026年汽车租赁台账</h2>
+        <form id="carRentalForm">
+            <!-- 填写日期（默认当天） -->
+            <div class="form-item">
+                <label>填写日期：</label>
+                <input type="date" name="fillDate" id="fillDate" required>
+            </div>
+            <!-- 车型选择（含联动输入） -->
+            <div class="form-item">
+                <label>租赁车型：</label>
+                <select name="carType" id="carType" required onchange="showOtherInput()">
+                    <option value="">请选择</option>
+                    <option value="5座">5座</option>
+                    <option value="7座">7座</option>
+                    <option value="考斯特">考斯特</option>
+                    <option value="大巴车">大巴车</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            <!-- 考斯特/大巴车座位数输入 -->
+            <div class="form-item" id="seatCountWrap" style="display: none;">
+                <label>座位数：</label>
+                <input type="number" name="seatCount" placeholder="请输入座位数" min="1">
+            </div>
+            <!-- 其他车型名称+座位数输入 -->
+            <div class="form-item other-input" id="otherCarWrap" style="display: none;">
+                <label>其他车型：</label>
+                <input type="text" name="otherCarName" placeholder="请输入车辆名称">
+                <input type="number" name="otherSeatCount" placeholder="座位数" min="1">
+            </div>
+            <!-- 租赁时间 -->
+            <div class="form-item">
+                <label>租赁时间：</label>
+                <input type="date" name="rentalDate" required>
+            </div>
+            <!-- 使用天数 -->
+            <div class="form-item">
+                <label>使用天数：</label>
+                <input type="number" name="useDays" placeholder="请输入使用天数" required min="1">
+            </div>
+            <!-- 使用科室（下拉+其他手动输入） -->
+            <div class="form-item">
+                <label>使用科室：</label>
+                <select name="dept" id="dept" required onchange="showDeptOtherInput()">
+                    <option value="">请选择</option>
+                    <option>办公室</option>
+                    <option>综合室</option>
+                    <option>后勤科</option>
+                    <option>规财科</option>
+                    <option>急传科</option>
+                    <option>地慢科</option>
+                    <option>重传科</option>
+                    <option>免规科</option>
+                    <option>卫生科</option>
+                    <option>信健科</option>
+                    <option>质控科</option>
+                    <option>职健科</option>
+                    <option>微生物检验科</option>
+                    <option>理化检验科</option>
+                    <option>监督一组</option>
+                    <option>监督二组</option>
+                    <option>监督三组</option>
+                    <option>稽查组</option>
+                    <option>第一支部</option>
+                    <option>第二支部</option>
+                    <option>机关工会</option>
+                    <option>机关妇委会</option>
+                    <option>团总支</option>
+                    <option>其他</option>
+                </select>
+            </div>
+            <div class="form-item" id="deptOtherWrap" style="display: none;">
+                <label>其他科室：</label>
+                <input type="text" name="deptOther" placeholder="请输入科室名称">
+            </div>
+            <!-- 租赁金额 -->
+            <div class="form-item">
+                <label>租赁金额：</label>
+                <input type="number" name="amount" placeholder="请输入金额（元）" required>
+            </div>
+            <!-- 科室联系人及电话 -->
+            <div class="form-item">
+                <label>科室联系人：</label>
+                <input type="text" name="deptContact" placeholder="请输入联系人姓名" required>
+            </div>
+            <div class="form-item">
+                <label>联系电话：</label>
+                <input type="tel" name="deptPhone" placeholder="请输入联系电话" required>
+            </div>
+            <!-- 后勤科经办人及电话 -->
+            <div class="form-item">
+                <label>后勤经办人：</label>
+                <input type="text" name="logisticsContact" placeholder="请输入经办人姓名" required>
+            </div>
+            <div class="form-item">
+                <label>经办人电话：</label>
+                <input type="tel" name="logisticsPhone" placeholder="请输入经办人电话" required>
+            </div>
+            <!-- 备注栏（自由填写） -->
+            <div class="form-item">
+                <label>备注：</label>
+                <textarea name="remark" placeholder="请输入备注信息（选填）"></textarea>
+            </div>
+            <!-- 按钮组 -->
+            <div class="btn-group">
+                <button type="button" class="submit-btn" onclick="saveToExcel()">提交并汇总</button>
+                <button type="button" class="export-btn" onclick="exportSingleExcel()">导出本条数据</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // 页面加载时设置填写日期为当天
+        window.onload = function() {
+            const today = new Date();
+            // 格式化为YYYY-MM-DD（date输入框要求的格式）
+            const formattedDate = today.toISOString().split('T')[0];
+            document.getElementById('fillDate').value = formattedDate;
+            
+            // 初始化隐藏额外输入框
+            showOtherInput();
+            showDeptOtherInput();
+        };
+
+        // 车型联动显示输入框
+        function showOtherInput() {
+            const carType = document.getElementById('carType').value;
+            const seatCountWrap = document.getElementById('seatCountWrap');
+            const otherCarWrap = document.getElementById('otherCarWrap');
+            seatCountWrap.style.display = 'none';
+            otherCarWrap.style.display = 'none';
+            if (carType === '考斯特' || carType === '大巴车') {
+                seatCountWrap.style.display = 'flex';
+            }
+            if (carType === '其他') {
+                otherCarWrap.style.display = 'flex';
+            }
+        }
+
+        // 科室联动显示其他输入框
+        function showDeptOtherInput() {
+            const dept = document.getElementById('dept').value;
+            const deptOtherWrap = document.getElementById('deptOtherWrap');
+            deptOtherWrap.style.display = dept === '其他' ? 'flex' : 'none';
+        }
+
+        // 提交并汇总到Excel（含填写日期+备注）
+        function saveToExcel() {
+            const form = document.getElementById('carRentalForm');
+            const formData = new FormData(form);
+            // 整理车型信息
+            let carInfo = formData.get('carType');
+            if (carInfo === '考斯特' || carInfo === '大巴车') {
+                carInfo += `(${formData.get('seatCount')}座)`;
+            } else if (carInfo === '其他') {
+                carInfo = `${formData.get('otherCarName')}(${formData.get('otherSeatCount')}座)`;
+            }
+            // 整理科室信息
+            let deptInfo = formData.get('dept');
+            if (deptInfo === '其他') {
+                deptInfo = formData.get('deptOther');
+            }
+            // 台账数据结构（含备注字段）
+            const data = [
+                ["填写日期", "租赁车型", "租赁时间", "使用天数", "使用科室", "租赁金额(元)", "科室联系人", "科室电话", "后勤经办人", "经办人电话", "备注", "提交时间"],
+                [
+                    formData.get('fillDate'),
+                    carInfo,
+                    formData.get('rentalDate'),
+                    formData.get('useDays'),
+                    deptInfo,
+                    formData.get('amount'),
+                    formData.get('deptContact'),
+                    formData.get('deptPhone'),
+                    formData.get('logisticsContact'),
+                    formData.get('logisticsPhone'),
+                    formData.get('remark') || "", // 无备注则填空
+                    new Date().toLocaleString()
+                ]
+            ];
+            // 读取已有汇总文件
+            let workbook;
+            try {
+                const existingFile = localStorage.getItem('carRentalTotalExcel');
+                if (existingFile) {
+                    const binary = atob(existingFile);
+                    const arr = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+                    workbook = XLSX.read(arr, { type: 'array' });
+                } else {
+                    workbook = XLSX.utils.book_new();
+                    const worksheet = XLSX.utils.aoa_to_sheet(data);
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "汽车租赁台账汇总");
+                }
+            } catch (e) {
+                workbook = XLSX.utils.book_new();
+                const worksheet = XLSX.utils.aoa_to_sheet(data);
+                XLSX.utils.book_append_sheet(workbook, worksheet, "汽车租赁台账汇总");
+            }
+            // 追加新数据
+            const worksheet = workbook.Sheets["汽车租赁台账汇总"];
+            XLSX.utils.sheet_add_aoa(worksheet, [data[1]], { origin: -1 });
+            // 保存并下载汇总文件
+            const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'base64' });
+            localStorage.setItem('carRentalTotalExcel', wbout);
+            const blob = new Blob([s2ab(atob(wbout))], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "2026汽车租赁台账汇总.xlsx";
+            a.click();
+            URL.revokeObjectURL(url);
+            alert("提交成功！已自动汇总到Excel文件");
+            form.reset();
+            // 重置后重新设置当天日期
+            document.getElementById('fillDate').value = new Date().toISOString().split('T')[0];
+            showOtherInput();
+            showDeptOtherInput();
+        }
+
+        // 导出本条数据为单独Excel（含备注）
+        function exportSingleExcel() {
+            const form = document.getElementById('carRentalForm');
+            const formData = new FormData(form);
+            // 整理车型信息
+            let carInfo = formData.get('carType');
+            if (carInfo === '考斯特' || carInfo === '大巴车') {
+                carInfo += `(${formData.get('seatCount')}座)`;
+            } else if (carInfo === '其他') {
+                carInfo = `${formData.get('otherCarName')}(${formData.get('otherSeatCount')}座)`;
+            }
+            // 整理科室信息
+            let deptInfo = formData.get('dept');
+            if (deptInfo === '其他') {
+                deptInfo = formData.get('deptOther');
+            }
+            // 单条数据结构（含备注）
+            const data = [
+                ["填写日期", "租赁车型", "租赁时间", "使用天数", "使用科室", "租赁金额(元)", "科室联系人", "科室电话", "后勤经办人", "经办人电话", "备注"],
+                [
+                    formData.get('fillDate'),
+                    carInfo,
+                    formData.get('rentalDate'),
+                    formData.get('useDays'),
+                    deptInfo,
+                    formData.get('amount'),
+                    formData.get('deptContact'),
+                    formData.get('deptPhone'),
+                    formData.get('logisticsContact'),
+                    formData.get('logisticsPhone'),
+                    formData.get('remark') || ""
+                ]
+            ];
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "汽车租赁台账");
+            XLSX.writeFile(workbook, `汽车租赁台账_${formData.get('logisticsContact')}_${new Date().getTime()}.xlsx`);
+        }
+
+        // 字符串转ArrayBuffer辅助函数
+        function s2ab(s) {
+            const buf = new ArrayBuffer(s.length);
+            const view = new Uint8Array(buf);
+            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i);
+            return buf;
+        }
+    </script>
+</body>
+</html>
